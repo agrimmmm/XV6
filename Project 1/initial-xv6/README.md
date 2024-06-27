@@ -37,4 +37,4 @@ All these values are obtained while running on 1 CPU.
 
 The graph obtained between `Queue Number` and `Number of Ticks` is given below:
 
-<img title="MLFQ Analysis" alt="Graph of the 10 processes in the 4 queues" src="./MLFQ_analysis.jpeg">
+<img title="MLFQ Analysis" alt="Graph of the 10 processes in the 4 queues" src="./src/MLFQ_analysis.jpeg">
