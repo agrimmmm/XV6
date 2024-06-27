@@ -1,4 +1,4 @@
-# Report for Scheduling
+# Scheduling Algorithms
 ### Explanation and Implementation
 
 ## Round Robin (RR)
