@@ -1,60 +1,40 @@
-# Testing system calls
+# Scheduling Algorithms
+### Explanation and Implementation
 
-## Running Tests for getreadcount
+## Round Robin (RR)
 
-Running tests for this syscall is easy. Just do the following from
-inside the `initial-xv6` directory:
+This was the default scheduling policy implemented in the XV-6 model. The processes keep alternating in a fixed order using `Context-Switch`. If the next process in the queue is in `RUNNABLE` state, then it is switched to `RUNNING` state.
+In summary, It iterates through an array of processes, selects the next runnable process, performs a context switch to start executing the selected process, and then continues this process until all runnable processes have had a chance to run. The `acquire` and `release` operations are used to ensure proper synchronization and avoid race conditions when accessing shared resources.
 
-```sh
-prompt> ./test-getreadcounts.sh
-```
+## First Come First Serve (FCFS)
 
-If you implemented things correctly, you should get some notification
-that the tests passed. If not ...
+This scheduling policy prefers the process with the minimum arrival time and runs it first. Therefore the process that arrives first in the system is executed first irrespective of all other factors like duration, interrupts, etc.
+To summarize, this code snippet is attempting to find the next `RUNNABLE` process with the minimum arrival time and switching the CPU context to execute that process. It ensures that only one process is executing at a time by using `locks` to synchronize access to the process data.
 
-The tests assume that xv6 source code is found in the `src/` subdirectory.
-If it's not there, the script will complain.
+## Multi Level Feedback Queues (MLFQ)
 
-The test script does a one-time clean build of your xv6 source code
-using a newly generated makefile called `Makefile.test`. You can use
-this when debugging (assuming you ever make mistakes, that is), e.g.:
+`MLFQ` implements and maintains a multi-level priority system. All processes are first sent to queue 0 (highest priority). After a process runs for a certain `limit time`, it is demoted to the lower priority queue if it is still not finished/interrupted.
+The `limit times` for the priority queues are as follows:
+- Queue 0 : `1 tick`
+- Queue 1 : `3 ticks`
+- Queue 2 : `9 ticks`
+- Queue 3 : `15 ticks`
+Also if a process has been waiting for more than `30 ticks`, then it is boosted up to the immediate higher priority queue. This is called `Aging Policy`. If a `User Interrupt` or `Kernel Interrupt` occurs, then the processes are again promoted and demoted according to the above defined criterias.
+**NOTE:** Promoting/demoting does not happen while a process is running on the CPU.
+The code implements a multi-level priority queue scheduler where processes are moved between different priority queues based on their execution behavior. Processes accumulate ticks and are moved to higher or lower priority queues according to certain conditions. The code ensures that processes are executed based on their priority levels, allowing for dynamic adjustment of process priorities based on their behavior and waiting times. This scheduler aims to balance responsiveness and fairness in process execution within the system.
 
-```sh
-prompt> cd src/
-prompt> make -f Makefile.test qemu-nox
-```
+## Time Comparisons
 
-You can suppress the repeated building of xv6 in the tests with the
-`-s` flag. This should make repeated testing faster:
+| Scheduling Policy | Average Run Time (rtime) | Average Wait Time (wtime) |
+| --- | --- | --- |
+| RR | 14 | 155 |
+| FCFS | 13 | 128 |
+| MLFQ | 14 | 147 |
 
-```sh
-prompt> ./test-getreadcounts.sh -s
-```
+All these values are obtained while running on 1 CPU.
 
----
+## MLFQ Scheduling Analysis
 
-## Running Tests for sigalarm and sigreturn
+The graph obtained between `Queue Number` and `Number of Ticks` is given below:
 
-**After implementing both sigalarm and sigreturn**, do the following:
-- Make the entry for `alarmtest` in `src/Makefile` inside `UPROGS`
-- Run the command inside xv6:
-    ```sh
-    prompt> alarmtest
-    ```
-
----
-
-## Getting runtimes and waittimes for your schedulers
-- Run the following command in xv6:
-    ```sh
-    prompt> schedulertest
-    ```  
----
-
-## Running tests for entire xv6 OS
-- Run the following command in xv6:
-    ```sh
-    prompt> usertests
-    ```
-
----
+<img title="MLFQ Analysis" alt="Graph of the 10 processes in the 4 queues" src="./MLFQ_analysis.jpeg">
